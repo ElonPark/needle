@@ -1,27 +1,27 @@
-# Why use dependency injection?
+# 의존성 주입을 사용하는 이유는 무엇입니까?
 
-This document describes the basics of the dependency injection pattern; what it is; and why it is a good pattern to apply to your app development? The texts below uses the term DI as short for dependency injection.
+이 문서에서는 의존성 주입 패턴의 기본 사항, 무엇이며 앱 개발에 적용하기에 좋은 패턴인 이유를 설명합니다. 아래 본문에서는 DI라는 용어를 의존성 주입의 줄임말로 사용합니다.
 
-## A somewhat real example to illustrate
+## 설명하기 위한 다소 현실적인 예
 
-Instead of describing the pattern in abstract terms, let's use a simple view controller based example to understand it. If you are interested in an abstract description, Wikipedia has [a great article](https://en.wikipedia.org/wiki/Dependency_injection).
+패턴을 추상적인 용어로 설명하는 대신 간단한 뷰 컨트롤러 기반 예를 사용하여 패턴을 이해해 보겠습니다. 추상적인 설명에 관심이 있으시면 Wikipedia에는 [훌륭한 기사](https://en.wikipedia.org/wiki/Dependency_injection)가 있습니다.
 
-Let's say we are developing a photo browsing app, where we have a view controller that displays a set of photos retrieved from the server. In this extremely simple app, we have a `PhotosViewController` that displays the photos, and a `PhotosService` that encapsulates the logic of requesting photos from our server. The `PhotosViewController` implements the view logic while the `PhotosService` contains the HTTP request sending and response parsing logic.  Without using DI, our `PhotosViewController` would instantiate a new instance of the `PhotosService` in its `init` or `viewDidLoad` method. Then it can use the service object to request photos when it sees fit.
+서버에서 검색한 사진 세트를 표시하는 뷰 컨트롤러가 있는 사진 검색 앱을 개발 중이라고 가정해 보겠습니다. 이 매우 간단한 앱에는 사진을 표시하는 `PhotosViewController`와 서버에서 사진을 요청하는 로직를 캡슐화하는 `PhotosService`가 있습니다. `PhotosViewController`는 보기 로직을 ​​구현하고 `PhotosService`는 HTTP 요청 전송 및 응답 분석 로직을 포함합니다. DI를 사용하지 않으면 `PhotosViewController`는 `init` 또는 `viewDidLoad` 메소드에서 `PhotosService`의 새 인스턴스를 인스턴스화 합니다. 그런 다음 서비스 객체를 사용하여 적합하다고 판단될 때 사진을 요청할 수 있습니다.
 
-Now let's step back and analyze our code. In its current state, the `PhotosViewController` and `PhotosService` are tightly coupled. This leaves us with a few issues:
-1. We cannot change `PhotosService` without having to also change `PhotosViewController`. This may seem fine with just two classes, but in a real-world scenario with hundreds of classes this would significantly slowdown our app iteration.
-2. We cannot switch out the `PhotosService` class without having to change `PhotosViewController`. Let's imagine we have a better `PhotosServiceV2` class we now want our view controller to use, we'll have to dig into the implementation of `PhotosViewController` to make changes.
-3. We cannot unit test `PhotosViewController` without also invoking the `PhotosService` implementation.
-4. We cannot develop `PhotosViewController` independently and concurrently with the `PhotosService`. This may not seem like a big deal with our extremely simple app, in a real-world team, our engineers would be blocked constantly.
+이제 뒤로 물러나 코드를 분석해 보겠습니다. 현재 상태에서는 `PhotosViewController`와 `PhotosService`가 밀접하게 결합되어 있습니다. 이것은 우리에게 몇 가지 문제를 남깁니다.
+1. `PhotosViewController`도 변경하지 않고는 `PhotosService`를 변경할 수 없습니다. 두 개의 클래스만 있으면 괜찮아 보일 수 있지만 수백 개의 클래스가 있는 실제 시나리오에서는 앱 반복 속도가 크게 느려집니다.
+2. `PhotosViewController`를 변경하지 않고 `PhotosService` 클래스를 전환할 수 없습니다. 이제 뷰 컨트롤러에서 사용하려는 더 나은 `PhotosServiceV2` 클래스가 있다고 가정해 보겠습니다. 변경하려면 `PhotosViewController` 구현을 파헤쳐야 합니다.
+3. `PhotosService` 구현을 호출하지 않고 `PhotosViewController`를 단위 테스트할 수 없습니다.
+4. `PhotosViewController`를 `PhotosService`와 독립적으로 동시에 개발할 수 없습니다. 이것은 매우 단순한 앱에서는 별 문제가 아닌 것처럼 보일 수 있지만 실제 팀에서는 엔지니어의 업무가 지속적으로 중단됩니다.
 
-Let's apply the DI pattern to our app. With DI, we will have a third class, in Needle's terms a `Component` class, that instantiates the `PhotosService` and pass it into the `PhotosViewController` as a protocol. Let's call this protocol `PhotosServicing`. Now our `PhotosViewController` no longer knows anything about the concrete implementation of `PhotosService`. It simply uses the passed in `PhotosServicing` protocol to perform its logic.
+DI 패턴을 앱에 적용해 보겠습니다. DI를 사용하면 Needle의 용어로 `Component` 클래스라는 세 번째 클래스가 생겨 `PhotosService`를 인스턴스화하고 프로토콜로 `PhotosViewController`에 전달합니다. 이 프로토콜을 `PhotosServicing`이라고 부르겠습니다. 이제 `PhotosViewController`는 `PhotosService`의 구체적인 구현에 대해 더 이상 알지 못합니다. 단순히 전달된 `PhotosServicing` 프로토콜을 사용하여 로직을 수행합니다.
 
-With DI applied, let's revisit the issues we had before:
-1. We can freely change the implementation of `PhotosService` without affecting our `PhotosViewController`.
-2. We can simply update our DI `Component` class to instantiate and pass `PhotosServiceV2` into `PhotosViewController`, as long as the implementation still conforms to the `PhotosServicing` protocol. This allows us to freely switch implementations of the photos service without having to change anything in the view controller.
-3. We can properly unit test `PhotosViewController` by injecting, aka passing in, a mock `PhotosServicing` object.
-4. As soon as the `PhotosServicing` protocol is defined, we can independently and concurrently develop `PhotosService` and `PhotosViewController` implementations.
+DI가 적용된 상태에서 이전에 있었던 문제를 다시 살펴보겠습니다.
+1. `PhotosViewController`에 영향을 주지 않고 `PhotosService` 구현을 자유롭게 변경할 수 있습니다.
+2. 구현이 여전히 `PhotosServicing` 프로토콜을 준수하는 한 DI `Component` 클래스를 업데이트하여 `PhotosServiceV2`를 인스턴스화하고 `PhotosViewController`에 전달할 수 있습니다. 이를 통해 뷰 컨트롤러에서 아무 것도 변경하지 않고도 사진 서비스 구현을 자유롭게 전환할 수 있습니다.
+3. 모의 `PhotosServicing` 객체를 주입하여 `PhotosViewController`를 적절하게 단위 테스트할 수 있습니다.
+4. `PhotosServicing` 프로토콜이 정의되는 즉시 `PhotosService` 및 `PhotosViewController` 구현을 독립적으로 동시에 개발할 수 있습니다.
 
-## Dependency injection terminologies
+## 의존성 주입 용어
 
-Before moving on, let's define some terminology that is frequently used with the DI pattern. In our example app above, the `PhotosService` is typically referred to as a "dependency". Our `PhotosViewController` class is sometimes referred to as the "dependent" or "consumer". The act of passing an instance of `PhotosServicing` into the `PhotosViewController` is called  "inject". In summary, our simple DI setup injects the `PhotosServicing` dependency into the consumer `PhotosViewController`. 
+계속 진행하기 전에 DI 패턴과 함께 자주 사용되는 몇 가지 용어를 정의하겠습니다. 위의 예제 앱에서 `PhotoService`는 일반적으로 "의존성"이라고 합니다. 우리의 `PhotosViewController` 클래스는 때때로 "종속" 또는 "소비자"라고 합니다. `PhotosServicing`의 인스턴스를 `PhotosViewController`에 전달하는 행위를 "주입"이라고 합니다. 요약하면, 우리의 간단한 DI 설정은 `PhotosServicing` 의존성을 소비자인 `PhotosViewController`에 주입합니다.

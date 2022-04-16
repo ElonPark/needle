@@ -2,27 +2,28 @@
 
 ## Building and developing
 
-First resolve the dependencies:
+먼저 의존성을 리졸브 합니다.
 
 ```
 $ swift package update
 ```
 
-You can then build from the command-line:
+그 다음 command-line을 사용하여 빌드 합니다.
 
 ```
 $ swift build
 ```
 
-Or create an Xcode project and build using the IDE:
+또는 Xcode 프로젝트를 만들고 IDE를 사용하여 빌드 합니다.
 
 ```
 $ swift package generate-xcodeproj --xcconfig-overrides foundation.xcconfig
 ```
-Note: For now, the xcconfig is being used to pass in the iOS deployment target settings.
+참고: 지금은 xcconfig를 사용하여 iOS deployment target settings를 전달하고 있습니다.
 
-**Once a Xcode project is generated using Swift Package Manager, the Xcode project's schemes must be recreated for both the `NeedleFoundation` framework as well as the `NeedleFoundationTests` test target.** This is required for Carthage and CI.
+**처음 Swift Package Manager를 사용하여 Xcode 프로젝트가 생성되면 `NeedleFoundation` 프레임워크와 `NeedleFoundationTests` 테스트 타겟 모두에 대해 Xcode 프로젝트 스킴를 다시 만들어야 합니다.** 
+이는 Carthage 및 CI를 위해 필요합니다.
 
-## Folder Structure
+## 폴더 구조
 
-In order for other projects to depend on `NeedleFoundation` via Swift Package Manager, the foundation project has to be at the reposiroty's root. At the same time, the folders cannot be named more specific to the foundation library, such as the `Sources` folder, due to SPM's strict requirements on folder structure.
+다른 프로젝트가 Swift Package Manager를 통해 `NeedleFoundation`에 의존하게 하려면 foundation 프로젝트가 저장소의 루트에 있어야 합니다. 동시에 폴더 구조에 대한 SPM의 엄격한 요구 사항으로 인해 `Sources` 폴더와 같이 기본 라이브러리에 더 특정한 폴더 이름을 지정할 수 없습니다.
